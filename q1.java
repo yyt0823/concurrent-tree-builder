@@ -97,7 +97,16 @@ public class q1 {
         // choose a color for drawing
         g.setColor(Color.BLUE);
         // draw the outer polygon
-        g.drawRect(0, 0, w, h);
+        g.drawRect(0, 0, w-1, h-1);
+        // draw the obstacles
+        g.setColor(Color.GREEN);
+        for (int i = 0; i < 20; i++) {
+            int x = (int)(Math.random()*(w-300));
+            int y = (int)(Math.random()*(h-300));
+            int width = (int)(0.05 * w);
+            int height = (int)(0.05 * h);
+            g.fillRect(x, y, width, height);
+        }
 
 
 
