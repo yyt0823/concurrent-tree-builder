@@ -3,7 +3,10 @@ import java.io.*;
 import javax.imageio.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.awt.*;
+import java.util.concurrent.*;                                                                                                                                        
+
 
 public class q1 {
     // parameters and their default values
@@ -68,7 +71,7 @@ public class q1 {
     }
 
     // main.  we allow an IOException in case the image loading/storing fails.
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         /* 
         starter code and api examples
 
@@ -119,7 +122,34 @@ public class q1 {
             g.fillRect(px, py, pSize, pSize);
         }
 
-        //todo: pick root node and run tree construction here
+        // pick root node and and init the tree
+        double rootX, rootY;
+        while (true) {
+            rootX = rng.nextDouble();
+            rootY = rng.nextDouble();
+            boolean valid = true;
+            for (Obstacle obs : obstacles) {
+                if (obs.contains(rootX, rootY)) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
+                break;
+            }
+        }
+        Tree tree = new Tree(rootX, rootY);
+
+        // make the thread pool
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        pool.submit(new TreeTask(tree, tree.root, pool));
+        pool.shutdown();
+        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+
+
+
+        //todo: call the treetask functions
+
         
 
 
@@ -158,9 +188,22 @@ public class q1 {
 
     // runnable for tree construction task
     static class TreeTask implements Runnable {
+        Tree tree;
+        Tree.Node node;
+        ExecutorService pool;
+        TreeTask(Tree tree, Tree.Node node, ExecutorService pool) {
+            this.tree = tree;
+            this.node = node;
+            this.pool = pool;
+        }
+
+        TreeTask(Tree tree) {
+            this.tree = tree;
+        }
 
         public void run() {
             //todo: implement tree construction and drawing here
+            
         }
     }
 
