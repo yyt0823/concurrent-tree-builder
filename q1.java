@@ -2,6 +2,7 @@ import java.awt.image.*;
 import java.io.*;
 import javax.imageio.*;
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 
 public class q1 {
@@ -12,6 +13,7 @@ public class q1 {
     public static double r = 0.05; // max dist
     public static int w = 2048; // output image height
     public static int h = 2048; // output image width
+    public static long seed = 42; // random seed for reproducibility
 
     public static final int RADIUS = 3; // circle radius in drawing
 
@@ -50,6 +52,8 @@ public class q1 {
                     b = Integer.parseInt(args[i+1]);
                 } else if (args[i].equals("-r")) {
                     r = Double.parseDouble(args[i+1]);
+                } else if (args[i].equals("-s")) {
+                    seed = Long.parseLong(args[i+1]);
                 } else {
                     help(args[i]);
                 }
@@ -90,6 +94,7 @@ public class q1 {
 
         //parse
         opts(args);
+        Random rng = new Random(seed);
         //make image
         BufferedImage outputimage = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
         // init "brush tools"
@@ -98,15 +103,20 @@ public class q1 {
         g.setColor(Color.BLUE);
         // draw the outer polygon
         g.drawRect(0, 0, w-1, h-1);
-        // draw the obstacles
+        // draw the obstacles: each is 0.05 x 0.05 in unit coords, strictly inside boundary
         g.setColor(Color.GREEN);
+        int obsSize = (int)(0.05 * w); // obstacle size in pixels
         for (int i = 0; i < 20; i++) {
-            int x = (int)(Math.random()*(w-300));
-            int y = (int)(Math.random()*(h-300));
-            int width = (int)(0.05 * w);
-            int height = (int)(0.05 * h);
-            g.fillRect(x, y, width, height);
+            // keep obstacle strictly within boundary (at least 1px from edge)
+            int x = 1 + (int)(rng.nextDouble() * (w - obsSize - 2));
+            int y = 1 + (int)(rng.nextDouble() * (h - obsSize - 2));
+            g.fillRect(x, y, obsSize, obsSize);
         }
+
+        //todo: run the tree construction and drawing here
+
+
+
 
 
 
@@ -137,6 +147,39 @@ public class q1 {
         
 
         
+    }
+
+    // runnable for tree construction task
+    static class TreeTask implements Runnable {
+
+        public void run() {
+            //todo: implement tree construction and drawing here
+        }
+    }
+
+    // tree data structure
+    static class Tree {
+        Node root;
+        List<Node> allNodes;
+        Tree(double x, double y) {
+            this.root = new Node(x, y);
+            this.allNodes = new ArrayList<>();
+            this.allNodes.add(this.root);
+        }
+
+        class Node {
+            double x;
+            double y;
+            List<Node> neighbors;
+            Node(double x, double y) {
+                this.x = x;
+                this.y = y;
+                this.neighbors = new ArrayList<>();
+            }
+        }
+
+        
+
     }
 
 
