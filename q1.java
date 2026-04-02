@@ -106,23 +106,20 @@ public class q1 {
         g.drawRect(0, 0, w-1, h-1);
         // draw the obstacles: each is 0.05 x 0.05 in unit coords, strictly inside boundary
         g.setColor(Color.GREEN);
-        int obsSize = (int)(0.05 * w); // obstacle size in pixels
+        double obsUnitSize = 0.05; // obstacle size in unit coords
         for (int i = 0; i < 20; i++) {
-            // keep obstacle strictly within boundary (at least 1px from edge)
-            int x = 1 + (int)(rng.nextDouble() * (w - obsSize - 2));
-            int y = 1 + (int)(rng.nextDouble() * (h - obsSize - 2));
-            obstacles.add(new Obstacle(x, y));
-
-            g.fillRect(x, y, obsSize, obsSize);
+            // generate top-left corner in unit coords, strictly within (0,1)
+            double ux = rng.nextDouble() * (1.0 - obsUnitSize);
+            double uy = rng.nextDouble() * (1.0 - obsUnitSize);
+            obstacles.add(new Obstacle(ux, uy, obsUnitSize));
+            // convert to pixels for drawing
+            int px = (int)(ux * w);
+            int py = (int)(uy * h);
+            int pSize = (int)(obsUnitSize * w);
+            g.fillRect(px, py, pSize, pSize);
         }
 
-        //todo: run the tree construction and drawing here
-        Tree tree;
-        while (true){
-            double x = rng.nextDouble();
-            double y = rng.nextDouble();
-            
-        }
+        //todo: pick root node and run tree construction here
         
 
 
@@ -190,19 +187,18 @@ public class q1 {
     }
 
     static class Obstacle {
-        double t,l,b,r;
-        double size = 0.05 * w; // obstacle size in pixels
-        Obstacle(double x, double y) {
-            this.t = x + size;
-            this.l = y + size;
-            this.b = y - size;
-            this.r = x - size; 
+        double x, y, size; // top-left corner and size, all in unit coords (0 to 1)
+
+        Obstacle(double x, double y, double size) {
+            this.x = x;
+            this.y = y;
+            this.size = size;
         }
 
-        boolean contains(double x, double y) {
-            return x >= l && x <= r && y >= b && y <= t;
+        // returns true if point (px, py) is inside or on the boundary of this obstacle
+        boolean contains(double px, double py) {
+            return px >= x && px <= x + size && py >= y && py <= y + size;
         }
-        
     }
 
 
