@@ -1,0 +1,137 @@
+import java.awt.image.*;
+import java.io.*;
+import javax.imageio.*;
+import java.util.*;
+import java.awt.*;
+
+public class q1 {
+    // parameters and their default values
+    public static int threads = 1; // number of threads to use
+    public static int n = 100; // number of nodes
+    public static int b = 3; // branching factor
+    public static double r = 0.05; // max dist
+    public static int w = 2048; // output image height
+    public static int h = 2048; // output image width
+
+    public static final int RADIUS = 3; // circle radius in drawing
+
+    // output image
+    public static BufferedImage imgout;
+
+    // print out command-line parameter help and exit
+    public static void help(String s) {
+        System.out.println("Could not parse argument \""+s+"\".  Please use only the following arguments:");
+        System.out.println(" -w output image width (integer; current=\""+w+"\")");
+        System.out.println(" -h output image height (integer; current=\""+h+"\")");
+        System.out.println(" -t threads (integer value >=1; current=\""+threads+"\")");
+        System.out.println(" -n nodes (integer value >1; current=\""+n+"\")");
+        System.out.println(" -b branching factor (integer value >1; current=\""+b+"\")");
+        System.out.println(" -r max segment distance (double value in (0.0,1.0); current=\""+r+"\")");
+        System.exit(1);
+    }
+
+    // process command-line options
+    public static void opts(String[] args) {
+        int i = 0;
+
+        try {
+            for (;i<args.length;i++) {
+                if (i==args.length-1)
+                    help(args[i]);
+                if (args[i].equals("-h")) {
+                    w = Integer.parseInt(args[i+1]);
+                } else if (args[i].equals("-w")) {
+                    h = Integer.parseInt(args[i+1]);
+                } else if (args[i].equals("-t")) {
+                    threads = Integer.parseInt(args[i+1]);
+                } else if (args[i].equals("-n")) {
+                    n = Integer.parseInt(args[i+1]);
+                } else if (args[i].equals("-b")) {
+                    b = Integer.parseInt(args[i+1]);
+                } else if (args[i].equals("-r")) {
+                    r = Double.parseDouble(args[i+1]);
+                } else {
+                    help(args[i]);
+                }
+                // an extra increment since our options consist of 2 pieces
+                i++;
+            }
+        } catch (Exception e) {
+            System.err.println(e);
+            help(args[i]);
+        }
+    }
+
+    // main.  we allow an IOException in case the image loading/storing fails.
+    public static void main(String[] args) throws IOException {
+        /* 
+        starter code and api examples
+
+        // process options
+        opts(args);
+
+        // create an output image
+        BufferedImage outputimage = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
+
+        // example of drawing---substitute with your own code if you want
+        Graphics2D g = (Graphics2D) outputimage.getGraphics();
+        // draw a node
+        g.setColor(Color.BLACK);
+        g.fillOval(w/2-RADIUS,h/2-RADIUS,RADIUS*2,RADIUS*2);
+
+        // draw an edge
+        g.setColor(Color.RED);
+        g.drawLine(0,0,w/2-5,h/2-5);
+
+        // Write out the image
+        File outputfile = new File("outputimage.png");
+        ImageIO.write(outputimage, "png", outputfile);
+        */
+
+        //parse
+        opts(args);
+        //make image
+        BufferedImage outputimage = new BufferedImage(w,h,BufferedImage.TYPE_INT_ARGB);
+        // init "brush tools"
+        Graphics2D g = (Graphics2D) outputimage.getGraphics();
+        // choose a color for drawing
+        g.setColor(Color.BLUE);
+        // draw the outer polygon
+        g.drawRect(0, 0, w, h);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Write out the image
+        File outputfile = new File("outputimage.png");
+        ImageIO.write(outputimage, "png", outputfile);
+
+
+
+
+        
+
+        
+    }
+
+
+
+
+   
+}
