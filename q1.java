@@ -16,6 +16,7 @@ public class q1 {
     public static long seed = 42; // random seed for reproducibility
 
     public static final int RADIUS = 3; // circle radius in drawing
+    public static final List<Obstacle> obstacles = new ArrayList<>(); // list of obstacles (we'll fill this in later)
 
     // output image
     public static BufferedImage imgout;
@@ -110,10 +111,19 @@ public class q1 {
             // keep obstacle strictly within boundary (at least 1px from edge)
             int x = 1 + (int)(rng.nextDouble() * (w - obsSize - 2));
             int y = 1 + (int)(rng.nextDouble() * (h - obsSize - 2));
+            obstacles.add(new Obstacle(x, y));
+
             g.fillRect(x, y, obsSize, obsSize);
         }
 
         //todo: run the tree construction and drawing here
+        Tree tree;
+        while (true){
+            double x = rng.nextDouble();
+            double y = rng.nextDouble();
+            
+        }
+        
 
 
 
@@ -177,9 +187,22 @@ public class q1 {
                 this.neighbors = new ArrayList<>();
             }
         }
+    }
 
+    static class Obstacle {
+        double t,l,b,r;
+        double size = 0.05 * w; // obstacle size in pixels
+        Obstacle(double x, double y) {
+            this.t = x + size;
+            this.l = y + size;
+            this.b = y - size;
+            this.r = x - size; 
+        }
+
+        boolean contains(double x, double y) {
+            return x >= l && x <= r && y >= b && y <= t;
+        }
         
-
     }
 
 
