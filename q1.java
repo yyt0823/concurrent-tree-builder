@@ -135,14 +135,28 @@ public class q1 {
         // make the thread pool
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         pool.submit(new TreeTask(tree, tree.root, pool, rng));
-        pool.shutdown();
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 
+        // draw tree edges
+        g.setColor(Color.RED);
+        for (Tree.Node nd : tree.allNodes) {
+            int nx = (int)(nd.x * w);
+            int ny = (int)(nd.y * h);
+            for (Tree.Node neighbor : nd.neighbors) {
+                int mx = (int)(neighbor.x * w);
+                int my = (int)(neighbor.y * h);
+                g.drawLine(nx, ny, mx, my);
+            }
+        }
+        // draw tree nodes
+        g.setColor(Color.BLACK);
+        for (Tree.Node nd : tree.allNodes) {
+            int nx = (int)(nd.x * w);
+            int ny = (int)(nd.y * h);
+            g.fillOval(nx - RADIUS, ny - RADIUS, RADIUS * 2, RADIUS * 2);
+        }
 
 
-        //todo: call the treetask functions
-
-        
 
 
 
@@ -250,6 +264,7 @@ public class q1 {
                 newNode = tree.new Node(newX, newY);
                 synchronized (tree) {
                     if (tree.allNodes.size() >= n) {
+                        pool.shutdown();
                         return;
                     }
                     if (node.neighbors.size() >= b) {
@@ -258,6 +273,9 @@ public class q1 {
                     tree.allNodes.add(newNode);
                     node.neighbors.add(newNode);
                     newNode.neighbors.add(node);
+                    if (tree.allNodes.size() >= n) {
+                        pool.shutdown();
+                    }
                 }
                 break;
             }
