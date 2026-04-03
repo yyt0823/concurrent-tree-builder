@@ -132,10 +132,14 @@ public class q1 {
         } while (inAnyObstacle(rootX, rootY));
         Tree tree = new Tree(rootX, rootY);
 
-        // make the thread pool
+        // make the thread pool and time the tree expansion
+        long startTime = System.currentTimeMillis();
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         pool.submit(new TreeTask(tree, tree.root, pool, rng));
+        pool.shutdown();
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        long endTime = System.currentTimeMillis();
+        System.out.println("Tree expansion took " + (endTime - startTime) + " ms with " + threads + " thread(s)");
 
         // draw tree edges
         g.setColor(Color.RED);
@@ -281,12 +285,12 @@ public class q1 {
             }
 
             if (newNode != null && !pool.isShutdown()) {
-                pool.submit(new TreeTask(tree, newNode, pool, rng));                                                                                                              
-            }                                                                                                                 
-            synchronized (tree) {                                                                                                                                                 
-                if (node.neighbors.size() < b && !pool.isShutdown()) {                                                                                                            
-                    pool.submit(new TreeTask(tree, node, pool, rng));                                                                                                             
-                }                                                                                                                                                                 
+                pool.submit(new TreeTask(tree, newNode, pool, rng));
+            }
+            synchronized (tree) {
+                if (node.neighbors.size() < b && !pool.isShutdown()) {
+                    pool.submit(new TreeTask(tree, node, pool, rng));
+                }
             } 
 
 
