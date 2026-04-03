@@ -1,4 +1,4 @@
-# COMP 409 Assignment 3 - Q1: Concurrent Random Search Tree
+# Concurrent Random Search Tree
 
 ## Overview
 This program builds a random search tree inside a 2D unit square environment containing 20 randomly placed obstacles. Tree construction is parallelized using a fixed-size thread pool.
