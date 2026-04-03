@@ -1,10 +1,12 @@
 import java.awt.image.*;
 import java.io.*;
 import javax.imageio.*;
+
+
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.awt.*;
+import java.awt.geom.*;
 import java.util.concurrent.*;                                                                                                                                        
 
 
@@ -124,25 +126,15 @@ public class q1 {
 
         // pick root node and and init the tree
         double rootX, rootY;
-        while (true) {
+        do {
             rootX = rng.nextDouble();
             rootY = rng.nextDouble();
-            boolean valid = true;
-            for (Obstacle obs : obstacles) {
-                if (obs.contains(rootX, rootY)) {
-                    valid = false;
-                    break;
-                }
-            }
-            if (valid) {
-                break;
-            }
-        }
+        } while (inAnyObstacle(rootX, rootY));
         Tree tree = new Tree(rootX, rootY);
 
         // make the thread pool
         ExecutorService pool = Executors.newFixedThreadPool(threads);
-        pool.submit(new TreeTask(tree, tree.root, pool));
+        pool.submit(new TreeTask(tree, tree.root, pool, rng));
         pool.shutdown();
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 
@@ -186,24 +178,105 @@ public class q1 {
         
     }
 
+    // check if not collide with any obstacles
+    static boolean inAnyObstacle(double x, double y) {
+        for (Obstacle obs : obstacles) {
+            if (obs.contains(x, y)) return true;
+        }
+        return false;
+    }
+
+    // check if in outer polygon
+    static boolean inBounds(double x, double y) {
+        return x > 0 && x < 1 && y > 0 && y < 1;
+    }
+
+    // check for distance
+    static double distance(double x1, double y1, double x2, double y2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    // basically the same line intersection check as in comp521 modern game design
+    static boolean edgeIntersectsAny(double x1, double y1, double x2, double y2) {
+        // check against each obstacle's 4 edges
+        for (Obstacle obs : obstacles) {
+            double ox = obs.x, oy = obs.y, os = obs.size;
+            if (Line2D.linesIntersect(x1,y1,x2,y2, ox,oy, ox+os,oy))       return true; // top
+            if (Line2D.linesIntersect(x1,y1,x2,y2, ox+os,oy, ox+os,oy+os)) return true; // right
+            if (Line2D.linesIntersect(x1,y1,x2,y2, ox,oy+os, ox+os,oy+os)) return true; // bottom
+            if (Line2D.linesIntersect(x1,y1,x2,y2, ox,oy, ox,oy+os))       return true; // left
+        }
+        return false;
+    }
+
     // runnable for tree construction task
     static class TreeTask implements Runnable {
         Tree tree;
         Tree.Node node;
         ExecutorService pool;
-        TreeTask(Tree tree, Tree.Node node, ExecutorService pool) {
+        Random rng;
+        TreeTask(Tree tree, Tree.Node node, ExecutorService pool, Random rng) {
             this.tree = tree;
             this.node = node;
             this.pool = pool;
-        }
-
-        TreeTask(Tree tree) {
-            this.tree = tree;
+            this.rng = new Random(rng.nextLong()); // each task gets its own Random
         }
 
         public void run() {
             //todo: implement tree construction and drawing here
+            // check if tree is complete already
+            synchronized (tree) {
+                if (tree.allNodes.size() >= n) {
+                    return; 
+                }
+            }
+            // otherwise, try to add a new node
+            Tree.Node newNode = null; 
+            while (true) {
+                double newX = rng.nextDouble();
+                double newY = rng.nextDouble();
+                double dist = distance(node.x, node.y, newX, newY);
+                // check for validity
+                if (!inBounds(newX, newY) || inAnyObstacle(newX, newY) || (dist <= 0 || dist >= r)) {
+                    continue; 
+                }
+                // check if can draw an edge
+                if (edgeIntersectsAny(node.x, node.y, newX, newY)) {
+                    continue; 
+                }
+                // if valid, add the new node and edge to the tree and draw them
+                newNode = tree.new Node(newX, newY);
+                synchronized (tree) {
+                    if (tree.allNodes.size() >= n) {
+                        return;
+                    }
+                    if (node.neighbors.size() >= b) {
+                        return;
+                    }
+                    tree.allNodes.add(newNode);
+                    node.neighbors.add(newNode);
+                    newNode.neighbors.add(node);
+                }
+                break;
+            }
+
+            if (newNode != null && !pool.isShutdown()) {
+                pool.submit(new TreeTask(tree, newNode, pool, rng));                                                                                                              
+            }                                                                                                                 
+            synchronized (tree) {                                                                                                                                                 
+                if (node.neighbors.size() < b && !pool.isShutdown()) {                                                                                                            
+                    pool.submit(new TreeTask(tree, node, pool, rng));                                                                                                             
+                }                                                                                                                                                                 
+            } 
+
+
+
             
+
+
+
         }
     }
 
