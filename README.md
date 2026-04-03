@@ -41,5 +41,10 @@ Produces `outputimage.png` showing the tree (red edges, black nodes) and obstacl
 | 8           | 131           |
 | 16          | 238           |
 
+## How to Run (recommended)
+```
+java q1 -n 10000 -b 3 -r 0.05 -t 4 -s 42
+```
+
 ## Analysis
-Performance degrades as thread count increases. This is because each task does a small amount of computation (random point generation and geometry checks) followed by a short critical section (`synchronized(tree)`) to add the node. With fine-grained tasks like these, thread coordination overhead and lock contention dominate over any parallel benefit. The single global tree lock becomes a bottleneck as more threads compete for it simultaneously. As the TA noted, near-linear speedup is not realistically expected given the low computation-to-synchronization ratio of this problem.
+It works best when t = 1. This is awkward as more threads actually slows the program down. This is probably because high contention happens in `synchronized(tree)`. Each task does a small amount of computation (random point generation and geometry checks) followed by a short critical section to add the node. With fine-grained tasks like these, thread coordination overhead and lock contention dominate over any parallel benefit. The single global tree lock becomes a bottleneck as more threads compete for it simultaneously. As the TA noted, near-linear speedup is not realistically expected given the low computation-to-synchronization ratio of this problem.
