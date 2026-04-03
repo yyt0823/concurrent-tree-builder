@@ -136,8 +136,10 @@ public class q1 {
         long startTime = System.currentTimeMillis();
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         pool.submit(new TreeTask(tree, tree.root, pool, rng));
-        pool.shutdown();
-        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        // wait until a task shuts down the pool when tree reaches n nodes
+        while (!pool.isTerminated()) {
+            pool.awaitTermination(100, TimeUnit.MILLISECONDS);
+        }
         long endTime = System.currentTimeMillis();
         System.out.println("Tree expansion took " + (endTime - startTime) + " ms with " + threads + " thread(s)");
 
