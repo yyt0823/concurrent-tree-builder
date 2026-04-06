@@ -76,6 +76,31 @@ int main(int argc, char *argv[])
 
     // printf("naive count: %d, end state: %d\n", naive_count, naive_end);
 
+
+    /*
+    design choice
+
+
+    1. thread seperations
+    i can either make a omp for loop that to assign different lo and hi value to each thread 
+    or i can seperate the first and last thread out and make assignment to middle threads
+
+    2. table 
+    i can either make one thread build the table for all states
+
+    #pragma omp sections                                                                                                                                   
+    {                                                                                                                                                      
+        #pragma omp section                                                                                                                                
+        {  thread A does this  }                                                                                                                       
+        #pragma omp section                                                                                                                                
+        {  thread B does this  }                                                                                                                       
+    }  
+    
+    or i can use omp section to let each thread build the table for one state but as we only have 4 threads
+    this probably wont work. these inner loops will steal threads from outer loop.
+
+    */ 
+
     ThreadResult results[t + 1];
     memset(results, 0, sizeof(results));
     double start_time = omp_get_wtime();
