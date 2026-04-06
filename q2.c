@@ -3,12 +3,11 @@
 #include <string.h>
 #include <omp.h>
 
-#define NUM_STATES 5
+#define NUM_STATES 4
 #define S0 0
 #define S1 1
 #define S2 2
 #define S3 3
-#define S4 4
 
 // for each thread we want it to return a table of start and end state along with their count
 typedef struct
@@ -44,9 +43,9 @@ int dfa_step(int state, char c, int *matches)
 // Generate a random string of length n and add the EOF symbol
 char *gen_string(int n)
 {
-    char charset[] = {'0', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    char charset[] = {'0', '0', '1', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                       'a', 'b', 'c', 'd', 'e', 'f', 'x', 'x', 'y'};
-    int charset_size = 20;
+    int charset_size = 21;
     char *str = malloc(n + 1);
     for (int i = 0; i < n; i++)
         str[i] = charset[rand() % charset_size];
@@ -70,41 +69,34 @@ int main(int argc, char *argv[])
     int n = atoi(argv[2]); // string length
     srand(42);
     char *str = gen_string(n);
-    printf("%s\n", str);
     // naive way, for testing only
     // int seg = (n + 1) / (t + 1);
     // int naive_end, naive_count;
     // run_segment(str, 0, seg, S0, &naive_end, &naive_count);
 
     // printf("naive count: %d, end state: %d\n", naive_count, naive_end);
+
     ThreadResult results[t + 1];
+    memset(results, 0, sizeof(results));
+    double start_time = omp_get_wtime();
     #pragma omp parallel num_threads(t + 1)
     {
         int id = omp_get_thread_num();
         int seg = (n + 1) / (t + 1);
         int lo = id * seg;
         int hi = (id == t) ? n + 1 : (id + 1) * seg;
-        if (id == 0){
+        if (id == 0)
+        {
             run_segment(str, lo, hi, S0, &results[0].end_states[S0], &results[0].counts[S0]);
         }
         else
+        {
+            for (int s = 0; s < NUM_STATES; s++)
             {
-                for (int s = 0; s < NUM_STATES; s++) {                                                                                                                 
-                    run_segment(str, lo, hi, s, &results[id].end_states[s], &results[id].counts[s]);                                                                   
-                } 
+                run_segment(str, lo, hi, s, &results[id].end_states[s], &results[id].counts[s]);
             }
-
-      printf("Thread %d: count %d, end state %d\n", id, results[id].counts[S0], results[id].end_states[S0]);                                             
+        }
     }
-
-    for (int i = 0; i < t + 1; i++) {                                                                                                                      
-      printf("Thread %d:\n", i);                                                                                                                         
-      for (int s = 0; s < NUM_STATES; s++) {                                                                                                             
-          printf("  start S%d: count=%d, end=%d\n", s, results[i].counts[s], results[i].end_states[s]);                                                  
-      }                                                                                                                                                  
-    }  
-
-
 
     // now we use the built table and do a final pass to get the total count
     int total_count = 0;
@@ -114,7 +106,10 @@ int main(int argc, char *argv[])
         total_count += results[i].counts[current_state];
         current_state = results[i].end_states[current_state];
     }
-    printf("Total count: %d\n", total_count);
+
+    double end_time = omp_get_wtime();
+    printf("%d\n", total_count);
+    printf("%.3f\n", (end_time - start_time) * 1000);
 
     return 0;
 }
