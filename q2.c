@@ -104,5 +104,17 @@ int main(int argc, char *argv[])
       }                                                                                                                                                  
     }  
 
+
+
+    // now we use the built table and do a final pass to get the total count
+    int total_count = 0;
+    int current_state = S0;
+    for (int i = 0; i < t + 1; i++)
+    {
+        total_count += results[i].counts[current_state];
+        current_state = results[i].end_states[current_state];
+    }
+    printf("Total count: %d\n", total_count);
+
     return 0;
 }
