@@ -10,10 +10,18 @@
 #define S3 3
 #define S4 4
 
+// for each thread we want it to return a table of start and end state along with their count
+typedef struct
+{
+    int counts[NUM_STATES];
+    int end_states[NUM_STATES];
+} ThreadResult;
+
 int is19(char c) { return c >= '1' && c <= '9'; }
 int is09af(char c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'); }
 int is19af(char c) { return (c >= '1' && c <= '9') || (c >= 'a' && c <= 'f'); }
 
+// build the DFA
 int dfa_step(int state, char c, int *matches)
 {
     switch (state)
@@ -26,7 +34,7 @@ int dfa_step(int state, char c, int *matches)
         return is09af(c) ? S3 : S0;
     case S3:
         if (is09af(c))
-            return S3; // self-loop
+            return S3;
         (*matches)++;
         return S0;
     }
@@ -63,13 +71,38 @@ int main(int argc, char *argv[])
     srand(42);
     char *str = gen_string(n);
     printf("%s\n", str);
-    int seg = (n + 1) / (t + 1);
-    int naive_end, naive_count;                                                                                                                            
-    run_segment(str, 0, seg, S0, &naive_end, &naive_count);                                                                                                
-                                                                                                                                                         
-    printf("naive count: %d, end state: %d\n", naive_count, naive_end);  
+    // naive way, for testing only
+    // int seg = (n + 1) / (t + 1);
+    // int naive_end, naive_count;
+    // run_segment(str, 0, seg, S0, &naive_end, &naive_count);
+
+    // printf("naive count: %d, end state: %d\n", naive_count, naive_end);
+    ThreadResult results[t + 1];
+    #pragma omp parallel num_threads(t + 1)
+    {
+        int id = omp_get_thread_num();
+        int seg = (n + 1) / (t + 1);
+        int lo = id * seg;
+        int hi = (id == t) ? n + 1 : (id + 1) * seg;
+        if (id == 0){
+            run_segment(str, lo, hi, S0, &results[0].end_states[S0], &results[0].counts[S0]);
+        }
+        else
+            {
+                for (int s = 0; s < NUM_STATES; s++) {                                                                                                                 
+                    run_segment(str, lo, hi, s, &results[id].end_states[s], &results[id].counts[s]);                                                                   
+                } 
+            }
+
+      printf("Thread %d: count %d, end state %d\n", id, results[id].counts[S0], results[id].end_states[S0]);                                             
+    }
+
+    for (int i = 0; i < t + 1; i++) {                                                                                                                      
+      printf("Thread %d:\n", i);                                                                                                                         
+      for (int s = 0; s < NUM_STATES; s++) {                                                                                                             
+          printf("  start S%d: count=%d, end=%d\n", s, results[i].counts[s], results[i].end_states[s]);                                                  
+      }                                                                                                                                                  
+    }  
 
     return 0;
-
-    // build the DFA
 }
