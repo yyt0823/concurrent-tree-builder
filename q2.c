@@ -63,6 +63,12 @@ int main(int argc, char *argv[])
     srand(42);
     char *str = gen_string(n);
     printf("%s\n", str);
+    int seg = (n + 1) / (t + 1);
+    int naive_end, naive_count;                                                                                                                            
+    run_segment(str, 0, seg, S0, &naive_end, &naive_count);                                                                                                
+                                                                                                                                                         
+    printf("naive count: %d, end state: %d\n", naive_count, naive_end);  
+
     return 0;
 
     // build the DFA
