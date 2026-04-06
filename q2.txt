@@ -1,0 +1,64 @@
+String length: 15,000,000 characters
+Runs per configuration: 10
+Platform: Apple M4 Mac Mini (10 cores)
+
+Timing Results 
+t=0 :     24.604 ms  
+t=1 :     48.200 ms  
+t=2 :     31.892 ms  
+t=3 :     26.363 ms  
+t=4 :     22.053 ms  (speedup)
+
+additional runs:
+t=5:  23.402 ms  
+t=6:  19.032 ms  
+t=7:  19.505 ms  
+t=8:  17.881 ms  
+t=9:  14.727 ms  
+
+
+
+
+
+Design choice 
+
+1. thread seperations
+i can either make a omp for loop that to assign different lo and hi value to each thread 
+or i can seperate the first and last thread out and make assignment to middle threads
+#pragma omp for 
+{
+    for (int i = 0; i < n; i++) {                                                                                                                          
+        seperation tasks                                                                                                                                          
+    } 
+}                                                                                                                                       
+
+
+2. table building
+i can either make one thread build the table for all states
+or i can use omp section to let each thread build the table for one state but as we only have 4 threads
+this probably wont work. these inner loops will steal threads from outer loop.
+#pragma omp sections                                                                                                                                   
+{                                                                                                                                                      
+    #pragma omp section                                                                                                                                
+    {  thread A does this  }                                                                                                                       
+    #pragma omp section                                                                                                                                
+    {  thread B does this  }                                                                                                                       
+}  
+
+
+other design choice on each section can be found in the code space comments
+
+
+Explanation
+-----------
+At t=1, performance is worse than the base case. This is expected as the single
+optimistic thread must run the DFA on its segment 4 times (4 times more work than single thread) to build the entire table.
+
+As t increases, the string is split into more segments and the parallel work
+is better distributed across cores. By t=4, we can see the speedup.
+
+i have run test on more than 4 thread as im on a 10 cores cpu. we can observed that with more threads we can see much more time reduction
+
+The balance point is around t=4,
+which makes sense: with 5 total threads each doing 4x work, the effective load
+is ~4/5 of the naive case when perfectly parallel, which aligns with observed results.
